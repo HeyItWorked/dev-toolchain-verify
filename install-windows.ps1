@@ -30,14 +30,16 @@ foreach ($id in @(
         'Bruno.Bruno'
     )) { Install-Pkg $id }
 
-Step 'winget source refresh'
-winget source update | Out-Null
+Step 'winget source refresh (winget only; msstore prompts in CI)'
+winget source update --name winget | Out-Null
 
-Step 'DBeaver (probe known IDs; index versions differ)'
-$id = @('DBeaver.DBeaver.Community', 'DBeaver.DBeaverCommunity', 'DBeaver.DBeaver') |
-    Where-Object { Test-Pkg $_ } |
-    Select-Object -First 1
-if ($id) { Install-Pkg $id } else { Write-Host '  not found; install from dbeaver.io' }
+Step 'DBeaver (Community edition)'
+winget install --id DBeaver.DBeaver.Community -e --source winget @Accept --disable-interactivity
+if ($LASTEXITCODE -in @(0, -1978335189)) {
+    Write-Host '  DBeaver installed'
+} else {
+    Write-Host "  not available in this index (exit $LASTEXITCODE); install from dbeaver.io"
+}
 
 if (-not $SkipDocker) {
     Step 'Docker Desktop (needs WSL2 + reboot on first use)'
