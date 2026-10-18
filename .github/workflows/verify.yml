@@ -1,0 +1,23 @@
+name: verify-toolchain
+on: workflow_dispatch
+
+jobs:
+  macos:
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install toolchain (containers skipped: no nested virt on runners)
+        env:
+          SKIP_CONTAINERS: "1"
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+        run: bash install-macos.sh
+
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install toolchain (Docker Desktop skipped)
+        shell: pwsh
+        run: ./install-windows.ps1 -SkipDocker
