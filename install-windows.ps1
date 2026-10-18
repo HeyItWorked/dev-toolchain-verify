@@ -15,7 +15,7 @@ function Install-Pkg($id) {
 }
 
 function Test-Pkg($id) {
-    winget show --id $id -e @Accept *> $null
+    winget show --id $id -e --source winget @Accept *> $null
     return ($LASTEXITCODE -eq 0)
 }
 
@@ -30,8 +30,11 @@ foreach ($id in @(
         'Bruno.Bruno'
     )) { Install-Pkg $id }
 
-Step 'DBeaver (ID changes between index versions, so probe known IDs)'
-$id = @('DBeaver.DBeaverCommunity', 'dbeaver.dbeaver', 'DBeaver.DBeaver') |
+Step 'winget source refresh'
+winget source update | Out-Null
+
+Step 'DBeaver (probe known IDs; index versions differ)'
+$id = @('DBeaver.DBeaver.Community', 'DBeaver.DBeaverCommunity', 'DBeaver.DBeaver') |
     Where-Object { Test-Pkg $_ } |
     Select-Object -First 1
 if ($id) { Install-Pkg $id } else { Write-Host '  not found; install from dbeaver.io' }
