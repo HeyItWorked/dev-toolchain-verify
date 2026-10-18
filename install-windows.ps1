@@ -55,5 +55,15 @@ foreach ($c in 'git', 'py', 'java', 'javac', 'node', 'npm', 'dotnet', 'docker', 
     else { Write-Host ("  {0,-8} MISSING (open a new terminal)" -f $c) }
 }
 
+# PATH may resolve a preinstalled JDK first; prove the package we installed works
+$jdk = Get-ChildItem 'C:\Program Files\Microsoft\jdk-21*' -ErrorAction SilentlyContinue |
+    Select-Object -First 1
+if ($jdk) {
+    $v = & (Join-Path $jdk.FullName 'bin\java.exe') -version 2>&1 | Select-Object -First 1
+    Write-Host ("  jdk21    {0}" -f $v)
+} else {
+    Write-Host '  jdk21    MISSING'
+}
+
 Write-Host "`nNext: open a new terminal, then launch Docker Desktop once." -ForegroundColor Yellow
 exit 0
