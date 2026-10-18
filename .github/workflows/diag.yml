@@ -1,0 +1,20 @@
+name: diag
+on: [push, workflow_dispatch]
+
+jobs:
+  win:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: winget dbeaver ground truth
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          winget search dbeaver
+          "search-exit=$LASTEXITCODE"
+          foreach ($id in 'DBeaver.DBeaverCommunity','DBeaver.DBeaver','dbeaver.dbeaver') {
+            winget show --id $id -e --accept-source-agreements *> $null
+            "$id exit=$LASTEXITCODE"
+          }
+          Get-ChildItem 'C:\Program Files\Microsoft\jdk-21*' -ErrorAction SilentlyContinue |
+            Select-Object -First 2 -ExpandProperty FullName
