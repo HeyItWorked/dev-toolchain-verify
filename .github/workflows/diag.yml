@@ -6,15 +6,15 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 10
     steps:
-      - name: winget dbeaver ground truth
+      - name: winget dbeaver after source update
         continue-on-error: true
         shell: pwsh
         run: |
-          winget search dbeaver
+          winget source update
+          "update-exit=$LASTEXITCODE"
+          winget search dbeaver --source winget --accept-source-agreements
           "search-exit=$LASTEXITCODE"
           foreach ($id in 'DBeaver.DBeaverCommunity','DBeaver.DBeaver','dbeaver.dbeaver') {
-            winget show --id $id -e --accept-source-agreements *> $null
+            winget show --id $id -e --source winget --accept-source-agreements *> $null
             "$id exit=$LASTEXITCODE"
           }
-          Get-ChildItem 'C:\Program Files\Microsoft\jdk-21*' -ErrorAction SilentlyContinue |
-            Select-Object -First 2 -ExpandProperty FullName
