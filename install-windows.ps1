@@ -8,6 +8,15 @@ function Step($m) { Write-Host "`n==> $m" -ForegroundColor Cyan }
 function Install-Pkg($id) {
     Write-Host "  $id"
     winget install --id $id -e @Accept --disable-interactivity
+    # 0x8A15002B = "already installed"; that is success for an idempotent run
+    if ($LASTEXITCODE -notin @(0, -1978335189)) {
+        throw "winget install failed for $id (exit $LASTEXITCODE)"
+    }
+}
+
+function Test-Pkg($id) {
+    winget show --id $id -e @Accept *> $null
+    return ($LASTEXITCODE -eq 0)
 }
 
 Step 'core packages'
@@ -21,12 +30,9 @@ foreach ($id in @(
         'Bruno.Bruno'
     )) { Install-Pkg $id }
 
-Step 'DBeaver (ID changes between index versions, so resolve it)'
-$line = winget search dbeaver @Accept |
-    Where-Object { $_ -match 'dbeaver' } |
-    Select-Object -First 1
-$id = ($line -split '\s+') |
-    Where-Object { $_ -match '^[A-Za-z0-9]+\.[A-Za-z0-9.]+$' } |
+Step 'DBeaver (ID changes between index versions, so probe known IDs)'
+$id = @('DBeaver.DBeaverCommunity', 'dbeaver.dbeaver', 'DBeaver.DBeaver') |
+    Where-Object { Test-Pkg $_ } |
     Select-Object -First 1
 if ($id) { Install-Pkg $id } else { Write-Host '  not found; install from dbeaver.io' }
 
@@ -45,3 +51,4 @@ foreach ($c in 'git', 'py', 'java', 'javac', 'node', 'npm', 'dotnet', 'docker', 
 }
 
 Write-Host "`nNext: open a new terminal, then launch Docker Desktop once." -ForegroundColor Yellow
+exit 0
